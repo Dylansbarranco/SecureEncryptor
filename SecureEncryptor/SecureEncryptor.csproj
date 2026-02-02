@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+
+		<!-- App -->
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Publicación -->
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+
+		<!-- Extracción interna correcta -->
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+
+		<!-- Optimización -->
+		<PublishReadyToRun>true</PublishReadyToRun>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<PublishTrimmed>false</PublishTrimmed>
+
+		<!-- Sin símbolos debug -->
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+
+	</PropertyGroup>
+
+</Project>
