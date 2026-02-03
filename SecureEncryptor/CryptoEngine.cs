@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace SecureEncryptor
 {
@@ -48,13 +49,63 @@ namespace SecureEncryptor
             );
         }
 
+        // BORRADO SEGURO DE ARCHIVO
+        public static void SecureDelete(string filePath, int overwrites = 3)
+        {
+            if (!File.Exists(filePath))
+                return;
+
+            try
+            {
+                FileInfo fileInfo = new FileInfo(filePath);
+                long fileSize = fileInfo.Length;
+
+                // Múltiples sobrescrituras para borrado seguro
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
+                {
+                    byte[] buffer = new byte[1024 * 64]; // 64 KB buffer
+                    
+                    for (int pass = 0; pass < overwrites; pass++)
+                    {
+                        // Primer pass: ceros, segundo: unos, tercero: datos aleatorios
+                        if (pass == 0)
+                            Array.Clear(buffer, 0, buffer.Length);
+                        else if (pass == 1)
+                            Array.Fill(buffer, (byte)0xFF);
+                        else
+                            RandomNumberGenerator.Fill(buffer);
+
+                        fs.Seek(0, SeekOrigin.Begin);
+                        long remaining = fileSize;
+                        while (remaining > 0)
+                        {
+                            int toWrite = (int)Math.Min(buffer.Length, remaining);
+                            fs.Write(buffer, 0, toWrite);
+                            remaining -= toWrite;
+                        }
+                        fs.Flush();
+                    }
+                }
+
+                File.Delete(filePath);
+            }
+            catch
+            {
+                // Si falla borrado seguro, intenta borrado normal
+                try { File.Delete(filePath); } catch { }
+            }
+        }
 
         // CIFRAR ARCHIVO
 
-        public static void EncryptFile(string inputFile, string password)
+        public static void EncryptFile(string inputFile, string password, Action<int, string>? onProgress = null)
         {
             if (!IsStrongPassword(password))
                 throw new Exception("Contraseña insegura.");
+
+            Stopwatch sw = Stopwatch.StartNew();
+            FileInfo fileInfo = new FileInfo(inputFile);
+            long fileSize = fileInfo.Length;
 
             byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
             byte[] nonce = RandomNumberGenerator.GetBytes(NonceSize);
@@ -68,6 +119,10 @@ namespace SecureEncryptor
             {
                 aes.Encrypt(nonce, plain, cipher, tag);
             }
+
+            sw.Stop();
+            double speedMBps = (fileSize / (1024.0 * 1024.0)) / sw.Elapsed.TotalSeconds;
+            onProgress?.Invoke(50, $"Cifrado: {speedMBps:F2} MB/s");
 
             // Guardar extensión original
             string extension = Path.GetExtension(inputFile);
@@ -89,6 +144,8 @@ namespace SecureEncryptor
                 fs.Write(cipher);      // datos
             }
 
+            onProgress?.Invoke(100, "Cifrado completado");
+
             CryptographicOperations.ZeroMemory(key);
             CryptographicOperations.ZeroMemory(plain);
         }
@@ -96,8 +153,12 @@ namespace SecureEncryptor
 
         // DESCIFRAR ARCHIVO
 
-        public static void DecryptFile(string encryptedFile, string password)
+        public static void DecryptFile(string encryptedFile, string password, Action<int, string>? onProgress = null)
         {
+            Stopwatch sw = Stopwatch.StartNew();
+            FileInfo fileInfo = new FileInfo(encryptedFile);
+            long fileSize = fileInfo.Length;
+
             using FileStream fs = new FileStream(encryptedFile, FileMode.Open);
 
             byte[] salt = new byte[SaltSize];
@@ -107,6 +168,8 @@ namespace SecureEncryptor
             fs.Read(salt);
             fs.Read(nonce);
             fs.Read(tag);
+
+            onProgress?.Invoke(25, "Leyendo metadatos...");
 
             // Leer extensión
             byte[] extSizeBytes = new byte[4];
@@ -120,6 +183,8 @@ namespace SecureEncryptor
             byte[] cipher = new byte[fs.Length - fs.Position];
             fs.Read(cipher);
 
+            onProgress?.Invoke(50, "Descifrando...");
+
             byte[] key = DeriveKey(password, salt);
             byte[] plain = new byte[cipher.Length];
 
@@ -128,8 +193,14 @@ namespace SecureEncryptor
                 aes.Decrypt(nonce, cipher, tag, plain);
             }
 
+            sw.Stop();
+            double speedMBps = (fileSize / (1024.0 * 1024.0)) / sw.Elapsed.TotalSeconds;
+            onProgress?.Invoke(75, $"Guardando: {speedMBps:F2} MB/s");
+
             string output = encryptedFile.Replace(".lol", "") + extension;
             File.WriteAllBytes(output, plain);
+
+            onProgress?.Invoke(100, "Descifrado completado");
 
             CryptographicOperations.ZeroMemory(key);
             CryptographicOperations.ZeroMemory(plain);
@@ -139,7 +210,7 @@ namespace SecureEncryptor
 
         // CIFRAR CARPETA COMPLETA
 
-        public static void EncryptDirectory(string folderPath, string password)
+        public static void EncryptDirectory(string folderPath, string password, Action<int, string>? onProgress = null)
         {
             string[] files = Directory.GetFiles(
                 folderPath,
@@ -147,18 +218,23 @@ namespace SecureEncryptor
                 SearchOption.AllDirectories
             );
 
-            foreach (string file in files)
+            int totalFiles = files.Length;
+            for (int i = 0; i < files.Length; i++)
             {
                 // Evitar volver a cifrar .lol
-                if (!file.EndsWith(".lol"))
-                    EncryptFile(file, password);
+                if (!files[i].EndsWith(".lol"))
+                {
+                    EncryptFile(files[i], password);
+                    int progress = (int)((i + 1) / (double)totalFiles * 100);
+                    onProgress?.Invoke(progress, $"Cifrando archivo {i + 1}/{totalFiles}");
+                }
             }
         }
 
   
         // DESCIFRAR CARPETA COMPLETA
     
-        public static void DecryptDirectory(string folderPath, string password)
+        public static void DecryptDirectory(string folderPath, string password, Action<int, string>? onProgress = null)
         {
             string[] files = Directory.GetFiles(
                 folderPath,
@@ -166,9 +242,12 @@ namespace SecureEncryptor
                 SearchOption.AllDirectories
             );
 
-            foreach (string file in files)
+            int totalFiles = files.Length;
+            for (int i = 0; i < files.Length; i++)
             {
-                DecryptFile(file, password);
+                DecryptFile(files[i], password);
+                int progress = (int)((i + 1) / (double)totalFiles * 100);
+                onProgress?.Invoke(progress, $"Descifrando archivo {i + 1}/{totalFiles}");
             }
         }
     }
