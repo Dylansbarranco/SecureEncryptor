@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             btnBrowse = new Button();
             btnDecrypt = new Button();
@@ -44,7 +43,8 @@
             lblFileInfo = new Label();
             lblSpeed = new Label();
             btnTogglePassword = new Button();
-            toolTip1 = new ToolTip(components);
+            chkTopMost = new CheckBox();
+            label1 = new Label();
             SuspendLayout();
             // 
             // btnBrowse
@@ -59,7 +59,6 @@
             btnBrowse.Size = new Size(80, 27);
             btnBrowse.TabIndex = 0;
             btnBrowse.Text = "Buscar...";
-            toolTip1.SetToolTip(btnBrowse, "Seleccionar archivo o carpeta");
             btnBrowse.UseVisualStyleBackColor = false;
             btnBrowse.Click += btnBrowse_Click;
             // 
@@ -75,7 +74,6 @@
             btnDecrypt.Size = new Size(120, 35);
             btnDecrypt.TabIndex = 1;
             btnDecrypt.Text = "[Descifrar]";
-            toolTip1.SetToolTip(btnDecrypt, "Descifrar archivo o carpeta");
             btnDecrypt.UseVisualStyleBackColor = false;
             btnDecrypt.Click += btnDecrypt_Click;
             // 
@@ -91,7 +89,6 @@
             btnEncrypt.Size = new Size(120, 35);
             btnEncrypt.TabIndex = 2;
             btnEncrypt.Text = "[Cifrar]";
-            toolTip1.SetToolTip(btnEncrypt, "Cifrar archivo o carpeta");
             btnEncrypt.UseVisualStyleBackColor = false;
             btnEncrypt.Click += btnEncrypt_Click;
             // 
@@ -104,7 +101,6 @@
             txtFile.Name = "txtFile";
             txtFile.Size = new Size(260, 25);
             txtFile.TabIndex = 3;
-            toolTip1.SetToolTip(txtFile, "Arrastre un archivo o carpeta aquí");
             txtFile.TextChanged += txtFile_TextChanged;
             txtFile.DragDrop += txtFile_DragDrop;
             txtFile.DragEnter += txtFile_DragEnter;
@@ -117,7 +113,6 @@
             txtPassword.Name = "txtPassword";
             txtPassword.Size = new Size(260, 25);
             txtPassword.TabIndex = 4;
-            toolTip1.SetToolTip(txtPassword, "Contraseña fuerte (mín. 16 caracteres)");
             txtPassword.UseSystemPasswordChar = true;
             txtPassword.TextChanged += txtPassword_TextChanged;
             // 
@@ -157,7 +152,7 @@
             lblStatus.ForeColor = Color.FromArgb(76, 175, 80);
             lblStatus.Location = new Point(20, 255);
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(470, 25);
+            lblStatus.Size = new Size(50, 25);
             lblStatus.TabIndex = 0;
             lblStatus.Text = "Listo";
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
@@ -215,9 +210,30 @@
             btnTogglePassword.Size = new Size(80, 27);
             btnTogglePassword.TabIndex = 5;
             btnTogglePassword.Text = "Ver";
-            toolTip1.SetToolTip(btnTogglePassword, "Mostrar/Ocultar contraseña");
             btnTogglePassword.UseVisualStyleBackColor = false;
             btnTogglePassword.Click += btnTogglePassword_Click;
+            // 
+            // chkTopMost
+            // 
+            chkTopMost.AutoSize = true;
+            chkTopMost.Checked = true;
+            chkTopMost.CheckState = CheckState.Checked;
+            chkTopMost.Location = new Point(524, 339);
+            chkTopMost.Name = "chkTopMost";
+            chkTopMost.Size = new Size(15, 14);
+            chkTopMost.TabIndex = 8;
+            chkTopMost.UseVisualStyleBackColor = true;
+            chkTopMost.CheckedChanged += chkTopMost_CheckedChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(410, 338);
+            label1.Name = "label1";
+            label1.Size = new Size(97, 15);
+            label1.TabIndex = 9;
+            label1.Text = "Siempre enfrente";
+            label1.Click += label1_Click;
             // 
             // Form1
             // 
@@ -225,6 +241,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 245, 245);
             ClientSize = new Size(611, 368);
+            Controls.Add(label1);
+            Controls.Add(chkTopMost);
             Controls.Add(lblStatus);
             Controls.Add(lblSpeed);
             Controls.Add(lblProgressPercent);
@@ -243,6 +261,8 @@
             MinimumSize = new Size(520, 300);
             Name = "Form1";
             Text = "SecureEncryptor - Cifrado Seguro";
+            TopMost = true;
+            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -263,6 +283,7 @@
         private Label lblFileInfo;
         private Label lblSpeed;
         private Button btnTogglePassword;
-        private ToolTip toolTip1;
+        private CheckBox chkTopMost;
+        private Label label1;
     }
 }

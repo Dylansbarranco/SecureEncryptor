@@ -10,6 +10,11 @@ namespace SecureEncryptor
         public Form1()
         {
             InitializeComponent();
+            chkTopMost.Checked = true;
+            this.TopMost = true;
+
+            chkTopMost.CheckedChanged += chkTopMost_CheckedChanged;
+
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -114,7 +119,7 @@ namespace SecureEncryptor
                     if (!hasLower) missing.Add("minúscula");
                     if (!hasDigit) missing.Add("número");
                     if (!hasSymbol) missing.Add("símbolo");
-                    
+
                     lblPasswordStrength.Text = $"[!] Falta: {string.Join(", ", missing)}";
                     lblPasswordStrength.ForeColor = Color.FromArgb(200, 0, 0);
                 }
@@ -340,21 +345,21 @@ namespace SecureEncryptor
 
                 if (password.Length < 16)
                     missing.Add($"Mínimo 16 caracteres (tiene {password.Length})");
-                
+
                 if (!password.Any(char.IsUpper))
                     missing.Add("Una MAYÚSCULA");
-                
+
                 if (!password.Any(char.IsLower))
                     missing.Add("Una minúscula");
-                
+
                 if (!password.Any(char.IsDigit))
                     missing.Add("Un número (0-9)");
-                
+
                 if (!password.Any(c => !char.IsLetterOrDigit(c)))
                     missing.Add("Un símbolo (!@#$%^&*)");
 
                 string missingText = string.Join("\n- ", missing);
-                
+
                 MessageBox.Show(
                     $"ERROR: Contraseña no cumple requisitos.\n\n" +
                     $"Falta:\n- {missingText}\n\n" +
@@ -474,6 +479,28 @@ namespace SecureEncryptor
                 DisplayFileInfo(files[0]);
             }
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            this.TopMost = true;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chkTopMost_CheckedChanged(object? sender, EventArgs e)
+        {
+            this.TopMost = chkTopMost.Checked;
+        }
+
+
     }
 }
 
