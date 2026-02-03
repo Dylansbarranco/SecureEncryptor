@@ -10,10 +10,24 @@ namespace SecureEncryptor
         public Form1()
         {
             InitializeComponent();
+
+            if (!TrialLicense.IsTrialValid())
+            {
+                MessageBox.Show(
+                    "La versión de prueba ha expirado.\nContacte al desarrollador.",
+                    "Licencia",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                Application.Exit();
+
+            }
             chkTopMost.Checked = true;
             this.TopMost = true;
 
             chkTopMost.CheckedChanged += chkTopMost_CheckedChanged;
+            
 
         }
 
